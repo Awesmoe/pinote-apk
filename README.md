@@ -1,6 +1,6 @@
 # PiNote APK
 
-Android companion app for [PiNote](https://github.com/Awesmoe/pinote) — draw handwritten notes with your S Pen and send them to a Raspberry Pi display.
+Android companion app for [PiNote](https://github.com/Awesmoe/pinote) — draw handwritten notes with your S Pen (or finger!) and send them to a Raspberry Pi display.
 
 ## Features
 
@@ -13,7 +13,7 @@ Android companion app for [PiNote](https://github.com/Awesmoe/pinote) — draw h
 ## Setup
 
 1. Set up the [PiNote server](https://github.com/Awesmoe/pinote) on your Raspberry Pi
-2. Build and install this app on a Samsung device with S Pen
+2. Build and install this app on any Android device (S Pen features optional)
 3. Open Settings (gear icon) and enter your Pi's IP address
 4. Draw and hit "Send to Pi"
 
