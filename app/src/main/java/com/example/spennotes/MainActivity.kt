@@ -185,7 +185,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearPiScreen() {
-        piRequest("/clear_notes", successMsg = "Pi screen cleared!", failMsg = "Failed to clear Pi screen")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Clear Pi screen?")
+            .setMessage("This will remove all notes from the Pi display.")
+            .setPositiveButton("Clear") { _, _ ->
+                piRequest("/clear_notes", successMsg = "Pi screen cleared!", failMsg = "Failed to clear Pi screen")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun sendNoteToRpi() {
