@@ -2,6 +2,13 @@
 
 Android companion app for [PiNote](https://github.com/Awesmoe/pinote) — draw handwritten notes with your S Pen (or finger!) and send them to a Raspberry Pi display.
 
+## Screenshots
+
+<p float="left">
+  <img src="screenshots/spennotes2.jpg" width="270" alt="Drawing screen" />
+  <img src="screenshots/spennotes1.jpg" width="270" alt="Settings screen" />
+</p>
+
 ## Features
 
 - Freehand drawing canvas with S Pen support
