@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -25,15 +26,10 @@ import java.net.URL
 class MainActivity : AppCompatActivity() {
     private lateinit var drawingView: DrawingView
     private lateinit var prefs: SharedPreferences
+    private lateinit var serverSwitcher: LinearLayout
 
     companion object {
-        private const val LOCAL_TIMEOUT_MS = 2000
-    }
-
-    private fun buildBaseUrl(ipKey: String, defaultIp: String): String {
-        val ip = prefs.getString(ipKey, defaultIp)
-        val port = prefs.getInt(SettingsActivity.KEY_SERVER_PORT, SettingsActivity.DEFAULT_SERVER_PORT)
-        return "http://$ip:$port"
+        private const val LOCAL_TIMEOUT_MS = 5000
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +56,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.settings_button).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        serverSwitcher = findViewById(R.id.server_switcher)
     }
 
     override fun onResume() {
@@ -67,6 +65,52 @@ class MainActivity : AppCompatActivity() {
         drawingView.updateSettings(
             spenOnly = prefs.getBoolean(SettingsActivity.KEY_SPEN_ONLY, false)
         )
+        refreshServerSwitcher()
+    }
+
+    private fun refreshServerSwitcher() {
+        serverSwitcher.removeAllViews()
+        val profiles = ServerProfile.loadAll(prefs)
+        if (profiles.size <= 1) {
+            serverSwitcher.visibility = View.GONE
+            return
+        }
+        serverSwitcher.visibility = View.VISIBLE
+        val activeIdx = ServerProfile.getActive(prefs).coerceIn(0, profiles.size - 1)
+
+        for ((i, profile) in profiles.withIndex()) {
+            val btn = Button(this).apply {
+                text = profile.name
+                textSize = 13f
+                isAllCaps = false
+                val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                lp.setMargins(4, 0, 4, 0)
+                layoutParams = lp
+                minimumHeight = 0
+                minHeight = 40
+
+                if (i == activeIdx) {
+                    setBackgroundColor(0xFF1976D2.toInt())
+                    setTextColor(0xFFFFFFFF.toInt())
+                } else {
+                    setBackgroundColor(0xFFE0E0E0.toInt())
+                    setTextColor(0xFF424242.toInt())
+                }
+
+                setOnClickListener {
+                    ServerProfile.setActive(prefs, i)
+                    refreshServerSwitcher()
+                }
+            }
+            serverSwitcher.addView(btn)
+        }
+    }
+
+    private fun getActiveProfile(): ServerProfile? {
+        val profiles = ServerProfile.loadAll(prefs)
+        if (profiles.isEmpty()) return null
+        val idx = ServerProfile.getActive(prefs).coerceIn(0, profiles.size - 1)
+        return profiles[idx]
     }
 
     private fun piRequest(
@@ -96,7 +140,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun postToPi(path: String, body: String? = null): Int {
-        fun attempt(base: String, timeoutMs: Int): Int {
+        val profile = getActiveProfile()
+            ?: throw Exception("No server configured")
+
+        fun attempt(ip: String, port: Int, timeoutMs: Int): Int {
+            if (ip.isBlank()) throw Exception("No IP configured")
+            val base = "http://$ip:$port"
             val connection = (URL("$base$path").openConnection() as HttpURLConnection).apply {
                 connectTimeout = timeoutMs
                 readTimeout = 5000
@@ -117,13 +166,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val localBase = buildBaseUrl(SettingsActivity.KEY_LOCAL_IP, SettingsActivity.DEFAULT_LOCAL_IP)
-        val tailscaleBase = buildBaseUrl(SettingsActivity.KEY_TAILSCALE_IP, SettingsActivity.DEFAULT_TAILSCALE_IP)
-
         return try {
-            attempt(localBase, LOCAL_TIMEOUT_MS)
+            attempt(profile.localIp, profile.port, LOCAL_TIMEOUT_MS)
         } catch (_: Exception) {
-            attempt(tailscaleBase, 5000)
+            attempt(profile.tailscaleIp, profile.port, 5000)
         }
     }
 
