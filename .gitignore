@@ -9,6 +9,7 @@ local.properties
 .externalNativeBuild
 .cxx
 .DS_Store
+.claude/
 
 # Server config (contains API keys)
 server/pinote_config.json
