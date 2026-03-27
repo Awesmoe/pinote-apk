@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.spennotes"
+    namespace = "com.awesmoe.spennotes"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.spennotes"
+        applicationId = "com.awesmoe.spennotes"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
