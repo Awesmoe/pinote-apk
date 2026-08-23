@@ -41,12 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         drawingView = DrawingView(this)
 
-        val displayMetrics = resources.displayMetrics
-        val halfHeight = displayMetrics.heightPixels / 2
         val drawingContainer = findViewById<FrameLayout>(R.id.drawing_container)
-
-        drawingContainer.layoutParams.height = halfHeight
-        drawingContainer.requestLayout()
 
         drawingContainer.addView(drawingView)
 
@@ -276,6 +271,10 @@ class DrawingView(context: Context) : View(context) {
                 path.lineTo(x, y)
             }
             MotionEvent.ACTION_UP -> {
+                currentStroke.add(PointF(x, y))
+                // Single tap has no MOVE events, so path has only a moveTo — offset
+                // slightly so the round cap renders as a visible dot
+                if (currentStroke.size == 1) path.lineTo(x + 0.1f, y) else path.lineTo(x, y)
                 strokes.add(currentStroke)
                 performClick()
             }
